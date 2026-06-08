@@ -1,0 +1,18 @@
+# Comandos para inicializar o repositório do projeto no GitHub
+
+# 1. Iniciar o repositório local
+git init
+
+# 2. Adicionar todos os arquivos ao pacote (o .gitignore evitará as pastas pesadas)
+git add .
+
+# 3. Fazer o primeiro commit com a versão funcional
+git commit -m "feat: versão inicial do Leitor de PDF com RAG local (PyQt6 + Ollama)"
+
+# 4. Exemplo de como fazer um segundo commit após alguma alteração extra (ex: no README.md)
+git commit -am "docs: adicionado tutorial de instalação e setup do Ollama"
+
+# 5. Conectar ao repositório remoto no GitHub (Lembre-se de criar o repositório vazio lá primeiro!)
+git branch -M main
+git remote add origin https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+git push -u origin main

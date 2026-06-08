@@ -1,0 +1,6 @@
+venv/
+venv_rag/
+chroma_db/
+GEMINI.md
+__pycache__/
+*.pyc

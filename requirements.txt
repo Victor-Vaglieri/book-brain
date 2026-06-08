@@ -1,0 +1,9 @@
+numpy
+pandas
+matplotlib
+streamlit
+opencv-python
+albumentations
+jupyter
+scikit-learn
+tqdm
