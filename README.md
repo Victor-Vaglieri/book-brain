@@ -93,11 +93,3 @@ projeto/
     # Rodar o código principal via Python dentro do venv ativado
     python main.py
     ```
-
-## 7. Desligamento e Boas Práticas
-
-```powershell
-# O desligamento seguro da aplicação deve ocorrer via fechamento padrão da GUI (Clicando no X).
-# O evento `closeEvent` sobrescrito no PyQt6 cuida de injetar flags de parada nas threads de embeddings
-# impedindo corrupções no SQLite do ChromaDB durante o processo de saída (Graceful Shutdown).
-```
