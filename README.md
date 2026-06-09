@@ -19,21 +19,23 @@ Abaixo estão documentadas as evidências que comprovam a implementação dos ob
 ### 2.1 Interface e Navegação (PyQt6 + PyMuPDF)
 O sistema realiza a leitura fluida dos documentos PDF com recursos de Zoom via `Ctrl + Scroll` e navegação de páginas através de atalhos de teclado e de campos editáveis. A área de visualização possui suporte nativo a "Modo Escuro" com inversão de pixels dinâmicos para conforto visual.
 
+<img width="872" height="467" alt="1" src="https://github.com/user-attachments/assets/7789fe19-8383-471f-abe2-6e9128561160" />
 
 *Demonstração do Leitor de PDF processando o livro TDD de Kent Beck, com inversão dinâmica de pixels ativada.*
 
 ### 2.2 Persistência de Dados (ChromaDB + JSON)
 A resiliência de dados é garantida pelo uso do `chromadb.PersistentClient` associado a um arquivo de estado local `library.json`. O progresso de leitura, metadados dos livros abertos (capas geradas via hash) e vetores indexados são mantidos de forma robusta entre ciclos de vida da aplicação.
 
+<img width="872" height="467" alt="2 - " src="https://github.com/user-attachments/assets/98861636-6f06-4a9f-ae6f-957b2fbeb11f" />
 
 *Evidência da persistência de metadados: Geração de miniatura da capa e estado de leitura (porcentagem lida) salvos localmente.*
 
 ### 2.3 Recuperação Aumentada por Geração (RAG)
 A aplicação implementa um pipeline RAG inteligente. Ao realizar uma pergunta no chat, a engine de embeddings busca os blocos de texto mais similares da biblioteca (ou restritos estritamente ao documento em leitura) e anexa como contexto na memória da LLM, reduzindo consideravelmente a alucinação de dados.
 
+<img width="872" height="467" alt="3" src="https://github.com/user-attachments/assets/cc1b5a75-b700-4326-a878-ec8b02473436" />
 
 *Pipeline RAG em ação: LLM respondendo com base no contexto injetado do documento "TDD", utilizando layout de balões de mensagens e feed visual de páginas lidas.*
-
 
 ## 3. Fluxo de Arquitetura
 
