@@ -10,13 +10,13 @@ class RAGPipeline:
         self.collection = self.client.get_or_create_collection(name="pdf_knowledge")
         self.embedder = SentenceTransformer(model_name)
         
-    def chunk_text(self, text, chunk_size=300, overlap=50):
-        # Fragmenta o texto em blocos de tamanho fixo com sobreposição.
+    def chunk_text(self, text, chunk_size=150, overlap=30):
+        # Fragmenta o texto em blocos menores (max 256 tokens do MiniLM).
         words = text.split()
         chunks = []
         for i in range(0, len(words), chunk_size - overlap):
             chunk = " ".join(words[i:i + chunk_size])
-            if chunk.strip():
+            if len(chunk.strip()) > 10: # Ignora blocos quase vazios
                 chunks.append(chunk)
         return chunks
 
@@ -48,7 +48,7 @@ class IngestionThread(QThread):
                     ids = [f"{doc_name}_p{page_num}_c{i}" for i in range(len(chunks))]
                     metadatas = [{"document": doc_name, "page": page_num} for _ in chunks]
                     
-                    self.rag.collection.add(
+                    self.rag.collection.upsert(
                         documents=chunks,
                         embeddings=embeddings,
                         metadatas=metadatas,
