@@ -9,8 +9,10 @@ O **Leitor de PDF Inteligente** atua como um assistente de estudo e análise de 
 ### Objetivos do Projeto
 1.  **Privacidade Total:** Inferência de IA e armazenamento vetorial executados estritamente na máquina local (sem chamadas a APIs de terceiros).
 2.  **Persistência Resiliente:** Gestão do banco de dados vetorial via ChromaDB, garantindo que o conhecimento de PDFs lidos anteriormente sobreviva ao reinício da aplicação.
-3.  **Processamento Assíncrono:** Extração de texto e geração de embeddings feitas em segundo plano para não congelar a interface de usuário (UI).
-4.  **Interface Dinâmica:** Leitor de PDF com biblioteca nativa, suporte avançado a zoom, modo escuro e interface de chat inspirada em apps de mensagens.
+3.  **Processamento Assíncrono e Semântico:** Extração de texto segmentada por blocos lógicos usando divisores semânticos (pontuação, parágrafos), gerados em segundo plano para não congelar a interface de usuário (UI).
+4.  **Memória Contextual (Chat History):** O assistente mantém o histórico da conversa, permitindo perguntas conectadas.
+5.  **Re-ranqueamento Preciso:** Filtro avançado anti-alucinação usando modelos Cross-Encoder que analisam profundamente a relevância dos blocos encontrados antes de enviá-los para a IA.
+6.  **Interface Dinâmica e Modular:** Leitor de PDF com biblioteca nativa, com a UI completamente componentizada (separação clara de responsabilidades).
 
 ## 2. Resultados e Evidências
 
@@ -31,26 +33,31 @@ A resiliência de dados é garantida pelo uso do `chromadb.PersistentClient` ass
 *Evidência da persistência de metadados: Geração de miniatura da capa e estado de leitura (porcentagem lida) salvos localmente.*
 
 ### 2.3 Recuperação Aumentada por Geração (RAG)
-A aplicação implementa um pipeline RAG inteligente. Ao realizar uma pergunta no chat, a engine de embeddings busca os blocos de texto mais similares da biblioteca (ou restritos estritamente ao documento em leitura) e anexa como contexto na memória da LLM, reduzindo consideravelmente a alucinação de dados.
+A aplicação implementa um pipeline RAG inteligente com 3 etapas cruciais de filtragem:
+1. **Fragmentação Semântica (LangChain):** Evita o corte cego de frases pela metade, particionando o texto de forma coerente através de delimitadores léxicos.
+2. **Busca Vetorial Expandida:** Resgate de um número expandido de blocos prováveis (top 15) direto do banco vetorial.
+3. **Re-ranqueamento (Cross-Encoder):** Re-ordenação dos blocos pelo seu real nível de resposta à pergunta da vez, separando apenas a "nata" (top 3) para anexar ao contexto. Tudo amarrado à memória de histórico (`Chat History`), reduzindo as alucinações de dados massivamente.
 
 <img width="872" height="467" alt="3" src="https://github.com/user-attachments/assets/cc1b5a75-b700-4326-a878-ec8b02473436" />
 
-*Pipeline RAG em ação: LLM respondendo com base no contexto injetado do documento "TDD", utilizando layout de balões de mensagens e feed visual de páginas lidas.*
+*Pipeline RAG em ação: LLM respondendo com base no contexto injetado e do histórico da conversa.*
 
 ## 3. Fluxo de Arquitetura
 
-1.  **Ingestão:** O **PyMuPDF** carrega o PDF e extrai o texto a cada transição de página feita pelo usuário.
-2.  **Processamento Background:** Uma **QThread** assíncrona absorve o texto, fatia em pequenos chunks (fragmentos) e gera vetores multidimensionais (embeddings).
+1.  **Ingestão e Chunking Semântico:** O **PyMuPDF** extrai o texto que é particionado de maneira inteligente pelo `RecursiveCharacterTextSplitter` (LangChain).
+2.  **Processamento Background:** Uma **QThread** assíncrona absorve os blocos e gera vetores multidimensionais (embeddings).
 3.  **Armazenamento Vetorial:** O **ChromaDB** gerencia de forma otimizada os embeddings em persistência de disco.
-4.  **Recuperação Semântica:** A pergunta enviada no chat aciona o banco vetorial buscando semânticas que respondam à dúvida atual.
-5.  **Inferência e IA:** O contexto enriquecido é submetido via REST API ao Ollama, que devolve a resposta final em formato HTML para a interface gráfica.
+4.  **Recuperação e Re-ranqueamento:** A pergunta aciona o banco para resgatar até 15 fragmentos. Um modelo auxiliar `Cross-Encoder` atribui notas a esses fragmentos, filtrando rigorosamente apenas os 3 melhores.
+5.  **Inferência e Memória:** O contexto purificado, juntamente com o *histórico da conversa*, é submetido via REST API ao Ollama (`/api/chat`), que devolve a resposta final em formato HTML.
 
 ## 4. Tecnologias e Ferramentas (Stack)
 
 *   **Interface Gráfica (GUI):** PyQt6
 *   **Processamento de PDF:** PyMuPDF (`fitz`)
+*   **Fragmentação Semântica:** `langchain-text-splitters`
 *   **Embeddings de Linguagem:** `sentence-transformers` (Modelo Leve: `all-MiniLM-L6-v2`)
 *   **Banco de Dados Vetorial:** ChromaDB (Persistente Local)
+*   **Filtro Re-ranqueador:** `cross-encoder` (Modelo: `ms-marco-MiniLM-L-6-v2`)
 *   **Motor de Inteligência Artificial:** Ollama executando localmente o modelo `llama3.2`
 
 ## 5. Estrutura do Projeto
@@ -60,8 +67,12 @@ projeto/
 ├── covers/               # Diretório dinâmico com miniaturas extraídas das capas
 ├── chroma_db/            # Banco de dados vetorial gerenciado pelo ChromaDB
 ├── venv_rag/             # Virtual Environment isolado contendo dependências
-├── main.py               # Front-end da aplicação, GUI e Threads de Ingestão/Chat
-├── rag.py                # Back-end da abstração do pipeline RAG (Embedder e DB)
+├── main.py               # Controlador Principal (Orquestrador da UI e lógica)
+├── ui_library.py         # Módulo de Interface: Grade da biblioteca e arquivos
+├── ui_reader.py          # Módulo de Interface: Leitor de PDF, zoom e navegação
+├── ui_chat.py            # Módulo de Interface: Painel lateral e chat
+├── chat_thread.py        # Módulo de Integração RAG (Chroma + CrossEncoder + Ollama)
+├── rag.py                # Back-end RAG (Modelos, Chunking Semântico e Ingestão DB)
 ├── library.json          # Estado JSON rastreando metadados de leitura
 ├── GEMINI.md             # Documentação de tracking estrutural
 └── README.md             # Este documento técnico
@@ -85,7 +96,7 @@ projeto/
     .\venv_rag\Scripts\activate
 
     # Instalar a Stack tecnológica requerida
-    pip install PyQt6 PyMuPDF sentence-transformers chromadb requests
+    pip install .\requirements.txt
     ```
 
 3.  **Iniciando a Plataforma:**
