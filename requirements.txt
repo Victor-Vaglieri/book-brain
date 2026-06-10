@@ -7,3 +7,4 @@ albumentations
 jupyter
 scikit-learn
 tqdm
+langchain-text-splitters
