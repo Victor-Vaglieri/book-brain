@@ -1,7 +1,8 @@
 import os
 import chromadb
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
 from PyQt6.QtCore import QThread, pyqtSignal
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 class RAGPipeline:
     def __init__(self, db_path="./chroma_db", model_name="all-MiniLM-L6-v2"):
@@ -9,16 +10,17 @@ class RAGPipeline:
         self.client = chromadb.PersistentClient(path=db_path)
         self.collection = self.client.get_or_create_collection(name="pdf_knowledge")
         self.embedder = SentenceTransformer(model_name)
+        self.cross_encoder = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
         
-    def chunk_text(self, text, chunk_size=150, overlap=30):
-        # Fragmenta o texto em blocos menores (max 256 tokens do MiniLM).
-        words = text.split()
-        chunks = []
-        for i in range(0, len(words), chunk_size - overlap):
-            chunk = " ".join(words[i:i + chunk_size])
-            if len(chunk.strip()) > 10: # Ignora blocos quase vazios
-                chunks.append(chunk)
-        return chunks
+    def chunk_text(self, text, chunk_size=1000, overlap=200):
+        # Fragmenta o texto usando divisores baseados em pontuação
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=overlap,
+            separators=["\n\n", "\n", ".", "?", "!", " ", ""]
+        )
+        chunks = splitter.split_text(text)
+        return [chunk for chunk in chunks if len(chunk.strip()) > 10]
 
 class IngestionThread(QThread):
     # QThread dedicada à ingestão assíncrona de documentos no banco vetorial.
