@@ -4,8 +4,16 @@ from sentence_transformers import SentenceTransformer, CrossEncoder
 from PyQt6.QtCore import QThread, pyqtSignal
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+import sys
+
 class RAGPipeline:
-    def __init__(self, db_path="./chroma_db", model_name="all-MiniLM-L6-v2"):
+    def __init__(self, db_path=None, model_name="all-MiniLM-L6-v2"):
+        if db_path is None:
+            if getattr(sys, 'frozen', False):
+                base_dir = os.path.dirname(sys.executable)
+            else:
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+            db_path = os.path.join(base_dir, "chroma_db")
         # Inicializa o cliente ChromaDB e o modelo de embeddings.
         self.client = chromadb.PersistentClient(path=db_path)
         self.collection = self.client.get_or_create_collection(name="pdf_knowledge")

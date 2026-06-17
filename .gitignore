@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 library.json
 covers/
+build/
+dist/
+main.spec

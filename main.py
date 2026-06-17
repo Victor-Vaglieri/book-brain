@@ -1,5 +1,14 @@
 import sys
 import os
+
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")
+
+os.environ["TQDM_DISABLE"] = "1"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+
 import json
 import hashlib
 import fitz
@@ -12,8 +21,15 @@ from ui_reader import ReaderWidget
 from ui_chat import ChatWidget
 from chat_thread import ChatThread
 
-LIBRARY_FILE = "library.json"
-COVERS_DIR = "covers"
+if getattr(sys, 'frozen', False):
+    # Se estiver rodando como .exe
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    # Se estiver rodando como script Python
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+LIBRARY_FILE = os.path.join(BASE_DIR, "library.json")
+COVERS_DIR = os.path.join(BASE_DIR, "covers")
 
 class MainWindow(QMainWindow):
     def __init__(self):
