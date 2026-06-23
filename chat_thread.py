@@ -21,7 +21,7 @@ class ChatThread(QThread):
             
         results = self.rag.collection.query(
             query_embeddings=query_emb,
-            n_results=15,
+            n_results=25,
             where=where_clause
         )
         
@@ -32,18 +32,15 @@ class ChatThread(QThread):
             docs = results['documents'][0]
             metadatas = results['metadatas'][0]
             
-            # Re-ranqueamento usando Cross-Encoder
             cross_inputs = [[self.prompt, doc] for doc in docs]
             scores = self.rag.cross_encoder.predict(cross_inputs)
             
-            # Combina as pontuações com os documentos e ordena
             scored_docs = sorted(zip(scores, docs, metadatas), key=lambda x: x[0], reverse=True)
             
-            # Mantém os 3 melhores (top 3)
-            top_3 = scored_docs[:3]
+            top_k = scored_docs[:8]
             
             context_docs = []
-            for score, doc, meta in top_3:
+            for score, doc, meta in top_k:
                 context_docs.append(doc)
                 if meta and "page" in meta:
                     paginas.add(int(meta["page"]))
@@ -52,7 +49,12 @@ class ChatThread(QThread):
         paginas_str = ", ".join([str(p) for p in sorted(list(paginas))])
             
         if contexto:
-            full_prompt = f"Você é um assistente especialista. Responda EXATAMENTE baseando-se no contexto abaixo. Se a resposta não estiver no contexto, diga que não encontrou.\n\n[CONTEXTO EXTRAÍDO DAS PÁGINAS {paginas_str}]:\n{contexto}\n\n[PERGUNTA]: {self.prompt}"
+            full_prompt = (
+                "Você é um assistente especialista de leitura. Responda à pergunta baseando-se PRIMEIRO no contexto abaixo extraído do documento. "
+                "Se a resposta não estiver completamente no contexto, você pode usar seu conhecimento geral para COMPLEMENTAR, "
+                "mas SEMPRE avise o que veio do documento e o que é seu conhecimento prévio. Seja didático, claro e organize bem as informações.\n\n"
+                f"[CONTEXTO EXTRAÍDO DAS PÁGINAS {paginas_str}]:\n{contexto}\n\n[PERGUNTA]: {self.prompt}"
+            )
         else:
             full_prompt = self.prompt
             
@@ -63,7 +65,11 @@ class ChatThread(QThread):
         payload = {
             "model": "llama3.2",
             "messages": messages,
-            "stream": False
+            "stream": False,
+            "options": {
+                "num_ctx": 8192,
+                "temperature": 0.6
+            }
         }
         
         try:
