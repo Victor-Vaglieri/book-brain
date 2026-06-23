@@ -1,8 +1,5 @@
 import os
-import chromadb
-from sentence_transformers import SentenceTransformer, CrossEncoder
 from PyQt6.QtCore import QThread, pyqtSignal
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 import sys
 
@@ -15,12 +12,17 @@ class RAGPipeline:
                 base_dir = os.path.dirname(os.path.abspath(__file__))
             db_path = os.path.join(base_dir, "chroma_db")
 
+        # Lazy imports
+        import chromadb
+        from sentence_transformers import SentenceTransformer, CrossEncoder
+        
         self.client = chromadb.PersistentClient(path=db_path)
         self.collection = self.client.get_or_create_collection(name="pdf_knowledge")
         self.embedder = SentenceTransformer(model_name)
         self.cross_encoder = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
         
     def chunk_text(self, text, chunk_size=1000, overlap=200):
+        from langchain_text_splitters import RecursiveCharacterTextSplitter
         # Fragmenta o texto usando divisores baseados em pontuação
         splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,

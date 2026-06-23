@@ -7,6 +7,8 @@ from PyQt6.QtCore import Qt, pyqtSignal
 class LibraryWidget(QWidget):
     open_document_signal = pyqtSignal(str)
     add_document_signal = pyqtSignal(str)
+    index_document_signal = pyqtSignal(str)
+    remove_document_signal = pyqtSignal(str)
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -72,11 +74,28 @@ class LibraryWidget(QWidget):
             prog_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             card_layout.addWidget(prog_label)
             
+            buttons_layout = QHBoxLayout()
+            
             btn_read = QPushButton("Abrir")
             btn_read.setStyleSheet("background-color: #4CAF50; color: white; border-radius: 5px; padding: 5px;")
             btn_read.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
             btn_read.clicked.connect(lambda checked, p=book["path"]: self.open_document_signal.emit(p))
-            card_layout.addWidget(btn_read)
+            buttons_layout.addWidget(btn_read)
+            
+            btn_index = QPushButton("Indexar Tudo")
+            btn_index.setStyleSheet("background-color: #FF9800; color: white; border-radius: 5px; padding: 5px;")
+            btn_index.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+            btn_index.clicked.connect(lambda checked, p=book["path"]: self.index_document_signal.emit(p))
+            buttons_layout.addWidget(btn_index)
+            
+            btn_remove = QPushButton("X")
+            btn_remove.setToolTip("Remover livro e limpar dados")
+            btn_remove.setStyleSheet("background-color: #E53935; color: white; font-weight: bold; border-radius: 5px; padding: 5px; max-width: 30px;")
+            btn_remove.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+            btn_remove.clicked.connect(lambda checked, p=book["path"]: self.remove_document_signal.emit(p))
+            buttons_layout.addWidget(btn_remove)
+            
+            card_layout.addLayout(buttons_layout)
             
             self.grid_layout.addWidget(book_card, row, col)
             col += 1
