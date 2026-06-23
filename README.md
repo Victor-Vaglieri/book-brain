@@ -42,6 +42,11 @@ A aplicação implementa um pipeline RAG inteligente com 3 etapas cruciais de fi
 
 *Pipeline RAG em ação: LLM respondendo com base no contexto injetado e do histórico da conversa.*
 
+### 2.4 Evolução do Modelo de Embeddings (Otimização Multilíngue)
+Para mitigar a limitação da IA alegar a *"falta de informações"* (algo comum quando o Retriever falha em cruzar intenções semânticas de idiomas não-nativos), o sistema passou a sua busca vetorial trocando o leve `all-MiniLM-L6-v2` (focado em inglês) pelo modelo `paraphrase-multilingual-MiniLM-L12-v2` (treinado nativamente em mais de 50 idiomas, com forte suporte ao português). 
+
+O script de teste contido neste repositório (`test_embeddings.py`) atua como prova de conceito, demonstrando que o modelo Multilíngue consegue parear sentenças em português com contexto impecável, provendo o bloco textual melhor para o *Llama 3.2* formular a resposta.
+
 ## 3. Fluxo de Arquitetura
 
 1.  **Ingestão e Chunking Semântico:** O **PyMuPDF** extrai o texto que é particionado de maneira inteligente pelo `RecursiveCharacterTextSplitter` (LangChain).
@@ -55,7 +60,7 @@ A aplicação implementa um pipeline RAG inteligente com 3 etapas cruciais de fi
 *   **Interface Gráfica (GUI):** PyQt6
 *   **Processamento de PDF:** PyMuPDF (`fitz`)
 *   **Fragmentação Semântica:** `langchain-text-splitters`
-*   **Embeddings de Linguagem:** `sentence-transformers` (Modelo Leve: `all-MiniLM-L6-v2`)
+*   **Embeddings de Linguagem:** `sentence-transformers` (Modelo Multilíngue: `paraphrase-multilingual-MiniLM-L12-v2`)
 *   **Banco de Dados Vetorial:** ChromaDB (Persistente Local)
 *   **Filtro Re-ranqueador:** `cross-encoder` (Modelo: `ms-marco-MiniLM-L-6-v2`)
 *   **Motor de Inteligência Artificial:** Ollama executando localmente o modelo `llama3.2`
