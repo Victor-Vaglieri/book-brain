@@ -22,10 +22,8 @@ from ui_chat import ChatWidget
 from chat_thread import ChatThread
 
 if getattr(sys, 'frozen', False):
-    # Se estiver rodando como .exe
     BASE_DIR = os.path.dirname(sys.executable)
 else:
-    # Se estiver rodando como script Python
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 LIBRARY_FILE = os.path.join(BASE_DIR, "library.json")
@@ -153,7 +151,6 @@ class MainWindow(QMainWindow):
     def on_page_changed(self, text, page_num, doc_name):
         self.ingestion_thread.add_page(text, doc_name, page_num)
         
-        # Salva a página atual silenciosamente
         for b in self.library_data:
             if b["path"] == self.reader_widget.document_path:
                 b["current"] = page_num - 1
