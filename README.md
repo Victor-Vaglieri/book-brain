@@ -65,7 +65,22 @@ O script de teste contido neste repositório (`test_embeddings.py`) atua como pr
 *   **Filtro Re-ranqueador:** `cross-encoder` (Modelo: `ms-marco-MiniLM-L-6-v2`)
 *   **Motor de Inteligência Artificial:** Ollama executando localmente o modelo `llama3.2`
 
-## 5. Estrutura do Projeto
+## 5. Motivação e Escolhas Arquiteturais (Trade-offs)
+
+*   **Ollama Local vs APIs de Nuvem:** A escolha do **Ollama** foi baseada na isenção de custos. Por rodar o modelo Llama, ele consome recursos do host em vez de depender de requisições de rede, proporcionando o uso offline e mais rápido.
+*   **Processamento em QThread vs Síncrono:** Para evitar o processo de congelamento visual ao se mudar de página no PDF, foi adotado o processamento em **QThread**. O sistema extrai e indexa textos para o banco vetorial de forma assíncrona, mantendo a responsividade do `PyMuPDF`.
+*   **ChromaDB Local vs Banco de Dados em Nuvem:** A configuração do ChromaDB com armazenamento persistente em disco traz uma gestão de maior confiança do conhecimento, permitindo testar e reter os vetores de indexação dos PDFs mesmo após o encerramento do app.
+
+## 6. Desafios Enfrentados e Soluções
+
+*   **Baixa Eficiência da Busca Vetorial em Português:** 
+    *   *Desafio:* Os modelos tradicionais orientados a inglês perdiam nuances da língua nativa do usuário, trazendo resultados irrelevantes para as perguntas.
+    *   *Solução:* Adoção de um modelo multilíngue atualizado (`paraphrase-multilingual-MiniLM-L12-v2`) em conjunto com a aplicação técnica de re-ranqueamento com Cross-Encoder (`ms-marco-MiniLM-L-6-v2`), que atua validando a correspondência final entre a base vetorial e a pergunta.
+*   **Alucinação e Limite de Contexto do LLM:**
+    *   *Desafio:* Fazer com que a inferência do LLM não tentasse adivinhar respostas fora do contexto do livro atual ou se perdesse em uma massa grande de informações injetadas.
+    *   *Solução:* Implementação do Cross-Encoder listado acima para extrair e repassar somente o Top 3 blocos de maior relevancia do fragmento, além da passagem do histórico de Chat (`Chat History`) para memória e as conexões coerentes com o tópico em discussão.
+
+## 7. Estrutura do Projeto
 
 ```text
 projeto/
@@ -83,7 +98,7 @@ projeto/
 └── README.md             # Este documento técnico
 ```
 
-## 6. Execução
+## 8. Execução
 
 ### Passo a Passo
 
