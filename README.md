@@ -1,58 +1,58 @@
 # Leitor de PDF Inteligente (RAG Local)
 
-Este repositório contém a infraestrutura e o código-fonte de uma aplicação desktop focada em transformar a leitura de arquivos PDF em uma experiência interativa e assistida por Inteligência Artificial rodando 100% localmente.
+Este repositório contém a infraestrutura e o código-fonte de uma aplicação desktop focada em transformar a leitura de arquivos PDF em uma experiência assistida por Inteligência Artificial rodando localmente.
 
 ## 1. Visão Geral
 
-O **Leitor de PDF Inteligente** atua como um assistente de estudo e análise de documentos onde o processamento de linguagem natural e a recuperação de informação são tratados localmente, garantindo máxima privacidade e eficiência.
+O **Leitor de PDF Inteligente** atua como um assistente de estudo e análise de documentos onde o processamento de linguagem natural e a recuperação de informação são tratados localmente, garantindo maior eficiência.
 
 ### Objetivos do Projeto
 1.  **Privacidade Total:** Inferência de IA e armazenamento vetorial executados estritamente na máquina local (sem chamadas a APIs de terceiros).
 2.  **Persistência Resiliente:** Gestão do banco de dados vetorial via ChromaDB, garantindo que o conhecimento de PDFs lidos anteriormente sobreviva ao reinício da aplicação.
-3.  **Processamento Assíncrono e Semântico:** Extração de texto segmentada por blocos lógicos usando divisores semânticos (pontuação, parágrafos), gerados em segundo plano para não congelar a interface de usuário (UI).
+3.  **Processamento Assíncrono e Semântico:** Extração de texto segmentada por blocos lógicos usando divisores semânticos (pontuação, parágrafos), gerados em segundo plano para não congelar a interface de usuário.
 4.  **Memória Contextual (Chat History):** O assistente mantém o histórico da conversa, permitindo perguntas conectadas.
-5.  **Re-ranqueamento Preciso:** Filtro avançado anti-alucinação usando modelos Cross-Encoder que analisam profundamente a relevância dos blocos encontrados antes de enviá-los para a IA.
-6.  **Interface Dinâmica e Modular:** Leitor de PDF com biblioteca nativa, com a UI completamente componentizada (separação clara de responsabilidades).
+5.  **Re-ranqueamento Preciso:** Filtro de anti-alucinação usando modelos Cross-Encoder que analisam a relevância dos blocos encontrados antes de enviá-los para a IA.
+6.  **Interface Dinâmica e Modular:** Leitor de PDF com biblioteca nativa, com a UI componentizada (separação clara de responsabilidades).
 
 ## 2. Resultados e Evidências
 
 Abaixo estão documentadas as evidências que comprovam a implementação dos objetivos do aplicativo.
 
 ### 2.1 Interface e Navegação (PyQt6 + PyMuPDF)
-O sistema realiza a leitura fluida dos documentos PDF com recursos de Zoom via `Ctrl + Scroll` e navegação de páginas através de atalhos de teclado e de campos editáveis. A área de visualização possui suporte nativo a "Modo Escuro" com inversão de pixels dinâmicos para conforto visual.
+O sistema realiza a leitura fluida dos documentos PDF com recursos de Zoom via `Ctrl + Scroll` e navegação de páginas através de atalhos de teclado e de campos editáveis. A área de visualização possui suporte a "Modo Escuro" com inversão de pixels dinâmicos para conforto visual.
 
 <img width="872" height="467" alt="1" src="https://github.com/user-attachments/assets/7789fe19-8383-471f-abe2-6e9128561160" />
 
 *Demonstração do Leitor de PDF processando o livro TDD de Kent Beck, com inversão dinâmica de pixels ativada.*
 
 ### 2.2 Persistência de Dados (ChromaDB + JSON)
-A resiliência de dados é garantida pelo uso do `chromadb.PersistentClient` associado a um arquivo de estado local `library.json`. O progresso de leitura, metadados dos livros abertos (capas geradas via hash) e vetores indexados são mantidos de forma robusta entre ciclos de vida da aplicação.
+A resiliência de dados é garantida pelo uso do `chromadb.PersistentClient` associado a um arquivo de estado local `library.json`. O progresso de leitura, metadados dos livros abertos (capas geradas via hash) e vetores indexados são mantidos entre ciclos de vida da aplicação.
 
 <img width="872" height="467" alt="2 - " src="https://github.com/user-attachments/assets/98861636-6f06-4a9f-ae6f-957b2fbeb11f" />
 
 *Evidência da persistência de metadados: Geração de miniatura da capa e estado de leitura (porcentagem lida) salvos localmente.*
 
 ### 2.3 Recuperação Aumentada por Geração (RAG)
-A aplicação implementa um pipeline RAG inteligente com 3 etapas cruciais de filtragem:
+A aplicação implementa um pipeline RAG com 3 etapas de filtragem:
 1. **Fragmentação Semântica (LangChain):** Evita o corte cego de frases pela metade, particionando o texto de forma coerente através de delimitadores léxicos.
 2. **Busca Vetorial Expandida:** Resgate de um número expandido de blocos prováveis (top 15) direto do banco vetorial.
-3. **Re-ranqueamento (Cross-Encoder):** Re-ordenação dos blocos pelo seu real nível de resposta à pergunta da vez, separando apenas a "nata" (top 3) para anexar ao contexto. Tudo amarrado à memória de histórico (`Chat History`), reduzindo as alucinações de dados massivamente.
+3. **Re-ranqueamento (Cross-Encoder):** Re-ordenação dos blocos pelo seu real nível de resposta à pergunta da vez, separando apenas o top 3 para anexar ao contexto. Junto à memória de histórico (`Chat History`), reduzindo as alucinações de dados.
 
 <img width="872" height="467" alt="3" src="https://github.com/user-attachments/assets/cc1b5a75-b700-4326-a878-ec8b02473436" />
 
 *Pipeline RAG em ação: LLM respondendo com base no contexto injetado e do histórico da conversa.*
 
 ### 2.4 Evolução do Modelo de Embeddings (Otimização Multilíngue)
-Para mitigar a limitação da IA alegar a *"falta de informações"* (algo comum quando o Retriever falha em cruzar intenções semânticas de idiomas não-nativos), o sistema passou a sua busca vetorial trocando o leve `all-MiniLM-L6-v2` (focado em inglês) pelo modelo `paraphrase-multilingual-MiniLM-L12-v2` (treinado nativamente em mais de 50 idiomas, com forte suporte ao português). 
+Para mitigar a limitação da IA alegar a *"falta de informações"* (algo comum quando o Retriever falha em cruzar intenções semânticas de idiomas não-nativos), o sistema passou a sua busca vetorial trocando o `all-MiniLM-L6-v2` (focado em inglês) pelo modelo `paraphrase-multilingual-MiniLM-L12-v2` (treinado nativamente em mais de 50 idiomas, com forte suporte ao português). 
 
-O script de teste contido neste repositório (`test_embeddings.py`) atua como prova de conceito, demonstrando que o modelo Multilíngue consegue parear sentenças em português com contexto impecável, provendo o bloco textual melhor para o *Llama 3.2* formular a resposta.
+O script de teste contido neste repositório (`test_embeddings.py`) atua como prova de conceito, demonstrando que o modelo Multilíngue consegue parear sentenças em português com melhor contexto, provendo o bloco textual melhor para o *Llama 3.2* formular a resposta.
 
 ## 3. Fluxo de Arquitetura
 
-1.  **Ingestão e Chunking Semântico:** O **PyMuPDF** extrai o texto que é particionado de maneira inteligente pelo `RecursiveCharacterTextSplitter` (LangChain).
+1.  **Ingestão e Chunking Semântico:** O **PyMuPDF** extrai o texto que é particionado pelo `RecursiveCharacterTextSplitter` (LangChain).
 2.  **Processamento Background:** Uma **QThread** assíncrona absorve os blocos e gera vetores multidimensionais (embeddings).
-3.  **Armazenamento Vetorial:** O **ChromaDB** gerencia de forma otimizada os embeddings em persistência de disco.
-4.  **Recuperação e Re-ranqueamento:** A pergunta aciona o banco para resgatar até 15 fragmentos. Um modelo auxiliar `Cross-Encoder` atribui notas a esses fragmentos, filtrando rigorosamente apenas os 3 melhores.
+3.  **Armazenamento Vetorial:** O **ChromaDB** gerencia os embeddings em persistência de disco.
+4.  **Recuperação e Re-ranqueamento:** A pergunta aciona o banco para resgatar até 15 fragmentos. Um modelo auxiliar `Cross-Encoder` atribui notas a esses fragmentos, filtrando apenas os 3 melhores.
 5.  **Inferência e Memória:** O contexto purificado, juntamente com o *histórico da conversa*, é submetido via REST API ao Ollama (`/api/chat`), que devolve a resposta final em formato HTML.
 
 ## 4. Tecnologias e Ferramentas (Stack)
