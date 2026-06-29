@@ -12,14 +12,14 @@ O **Leitor de PDF Inteligente** atua como um assistente de estudo e análise de 
 3.  **Processamento Assíncrono e Semântico:** Extração de texto segmentada por blocos lógicos usando divisores semânticos (pontuação, parágrafos), gerados em segundo plano para não congelar a interface de usuário.
 4.  **Memória Contextual (Chat History):** O assistente mantém o histórico da conversa, permitindo perguntas conectadas.
 5.  **Re-ranqueamento Preciso:** Filtro de anti-alucinação usando modelos Cross-Encoder que analisam a relevância dos blocos encontrados antes de enviá-los para a IA.
-6.  **Interface Dinâmica e Modular:** Leitor de PDF com biblioteca nativa, com a UI componentizada (separação clara de responsabilidades).
+6.  **Interface Modular e Responsiva:** Leitor de PDF com biblioteca nativa, grade de exibição responsiva e UI componentizada (separação clara de responsabilidades).
 
 ## 2. Resultados e Evidências
 
 Abaixo estão documentadas as evidências que comprovam a implementação dos objetivos do aplicativo.
 
 ### 2.1 Interface e Navegação (PyQt6 + PyMuPDF)
-O sistema realiza a leitura fluida dos documentos PDF com recursos de Zoom via `Ctrl + Scroll` e navegação de páginas através de atalhos de teclado e de campos editáveis. A área de visualização possui suporte a "Modo Escuro" com inversão de pixels dinâmicos para conforto visual.
+O sistema realiza a leitura dos documentos PDF com recursos de Zoom via `Ctrl + Scroll` e navegação de páginas através de atalhos de teclado e de campos editáveis. A área de visualização possui suporte a "Modo Escuro" com inversão de pixels para conforto visual. Além disso, a aba de biblioteca conta com um layout em grade responsivo, que adapta a quantidade de itens por linha conforme o tamanho da janela da aplicação.
 
 <img width="872" height="467" alt="1" src="https://github.com/user-attachments/assets/7789fe19-8383-471f-abe2-6e9128561160" />
 
@@ -86,15 +86,11 @@ O script de teste contido neste repositório (`test_embeddings.py`) atua como pr
 projeto/
 ├── covers/               # Diretório dinâmico com miniaturas extraídas das capas
 ├── chroma_db/            # Banco de dados vetorial gerenciado pelo ChromaDB
-├── venv_rag/             # Virtual Environment isolado contendo dependências
-├── main.py               # Controlador Principal (Orquestrador da UI e lógica)
-├── ui_library.py         # Módulo de Interface: Grade da biblioteca e arquivos
-├── ui_reader.py          # Módulo de Interface: Leitor de PDF, zoom e navegação
-├── ui_chat.py            # Módulo de Interface: Painel lateral e chat
-├── chat_thread.py        # Módulo de Integração RAG (Chroma + CrossEncoder + Ollama)
-├── rag.py                # Back-end RAG (Modelos, Chunking Semântico e Ingestão DB)
+├── src/                  # Código-fonte principal da aplicação
+│   ├── core/             # Lógica de negócio e integração (RAG, Chroma, Ollama)
+│   └── ui/               # Componentes da Interface de Usuário (Biblioteca, Leitor, Chat)
+├── main.py               # Controlador Principal (Orquestrador da aplicação)
 ├── library.json          # Estado JSON rastreando metadados de leitura
-├── GEMINI.md             # Documentação de tracking estrutural
 └── README.md             # Este documento técnico
 ```
 
